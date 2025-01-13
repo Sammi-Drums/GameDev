@@ -1,0 +1,148 @@
+//
+// Created by sammi on 13/01/2025.
+//#include <iostream>
+#include <vector>
+#include <string>
+#include <cstdlib>
+#include <iostream>
+
+// --- Class Definitions ---
+
+// Player class
+class Player {
+private:
+    std::string name;
+    int health;
+    int position;
+
+public:
+    Player(const std::string &name, int health)
+        : name(name), health(health), position(0) {
+    }
+
+    std::string getName() const { return name; }
+    int getHealth() const { return health; }
+    int getPosition() const { return position; }
+
+    void setPosition(int pos) { position = pos; }
+
+    void updateHealth(int value) {
+        health += value;
+        if (health < 0) health = 0; // Ensure health doesn't go negative
+    }
+
+    void displayStatus() const {
+        std::cout << "Player: " << name << " | Health: " << health
+                << " | Position: " << position << std::endl;
+    }
+};
+
+// Monster class
+class Monster {
+private:
+    int position;
+    int damage;
+
+public:
+    Monster(int position, int damage)
+        : position(position), damage(damage) {
+    }
+
+    bool sensePlayer(int playerPosition) const {
+        return playerPosition == position;
+    }
+
+    void attack(Player &player) const {
+        std::cout << "Monster attacks! Player loses " << damage << " health points.\n";
+        player.updateHealth(-damage);
+    }
+};
+
+// Room class
+class Room {
+private:
+    int id;
+    std::string description;
+    int healthEffect; // Positive or negative health effect
+
+public:
+    Room(int id, const std::string &description, int healthEffect)
+        : id(id), description(description), healthEffect(healthEffect) {
+    }
+
+    int getId() const { return id; }
+    std::string getDescription() const { return description; }
+
+    void enter(Player &player) const {
+        std::cout << "You have entered Room " << id << ": " << description << std::endl;
+        if (healthEffect != 0) {
+            std::cout << "Health effect: " << healthEffect << " points.\n";
+            player.updateHealth(healthEffect);
+        }
+    }
+};
+
+// --- Main Game Logic ---
+int main() {
+    // Initialize player
+    Player player("Hero", 100);
+
+    // Initialize monster
+    Monster monster(2, 20);
+
+    // Initialize rooms
+    std::vector<Room> rooms = {
+        {0, "Starting room with dim light.", 0},
+        {1, "A small chamber with strange carvings.", 0},
+        {2, "A dark room where you hear growling.", -10},
+        {3, "A room with a shiny exit door!", 0}
+    };
+
+    // Start game
+    std::cout << "Welcome to Cave Escape, " << player.getName() << "!\n";
+    std::cout << "Your objective is to reach the exit without losing all your health.\n";
+
+    bool gameRunning = true;
+
+    while (gameRunning) {
+        player.displayStatus();
+
+        // Get player input for next move
+        std::cout << "\nEnter your next move (Room ID 0-3, -1 to exit): ";
+        int choice;
+        std::cin >> choice;
+
+        // Exit game
+        if (choice == -1) {
+            std::cout << "You have chosen to exit the game. Goodbye!\n";
+            break;
+        }
+
+        // Check for invalid input
+        if (choice < 0 || choice >= rooms.size()) {
+            std::cout << "Invalid room. Please choose a valid room ID.\n";
+            continue;
+        }
+
+        // Move player and enter room
+        player.setPosition(choice);
+        rooms[choice].enter(player);
+
+        // Check for monster encounter
+        if (monster.sensePlayer(player.getPosition())) {
+            monster.attack(player);
+        }
+
+        // Check game over conditions
+        if (player.getHealth() <= 0) {
+            std::cout << "You have died! Game over.\n";
+            gameRunning = false;
+        } else if (player.getPosition() == 3) {
+            std::cout << "Congratulations! You have reached the exit and escaped the cave!\n";
+            gameRunning = false;
+        }
+    }
+
+    std::cout << "Thank you for playing Cave Escape!\n";
+    return 0;
+}
